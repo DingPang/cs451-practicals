@@ -47,6 +47,7 @@ for d in data:
 
 
 def find_candidate_splits(data: List[DataPoint]) -> List[float]:
+    # data.sort()
     midpoints = []
     TODO("loop through data and generate candidate split locations")
     return midpoints
