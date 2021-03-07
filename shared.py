@@ -31,12 +31,12 @@ def dataset_local_path(name: str) -> str:
     destination = os.path.join("data", name)
     if name == "forest-fires.csv":
         __download_file(
-            "https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv",
+            "http://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv",
             destination,
         )
     elif name == "poetry_id.jsonl":
         __download_file(
-            "https://ciir.cs.umass.edu/downloads/poetry/id_datasets.jsonl", destination
+            "http://ciir.cs.umass.edu/downloads/poetry/id_datasets.jsonl", destination
         )
     else:
         raise ValueError("No such dataset... {}; should you git pull?".format(name))

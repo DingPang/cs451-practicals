@@ -12,7 +12,7 @@ from shared import TODO
 
 #%%
 # Let's define a really simple class with two fields:
-@dataclass
+@dataclass # Automatically generates special methods (i.e. _init_())
 class DataPoint:
     temperature: float
     frozen: bool

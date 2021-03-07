@@ -35,6 +35,7 @@ with open(dataset_local_path("poetry_id.jsonl")) as fp:
         # hold onto this single dictionary.
         examples.append(keep)
 
+
 #%% Convert data to 'matrices'
 # NOTE: there are better ways to do this, built-in to scikit-learn. We will see them soon.
 
@@ -75,28 +76,57 @@ print(
 
 # Create a regression-tree object:
 f = DecisionTreeClassifier(
+    splitter="best",  # best: best split; random: best random split
+    max_features=None,  # max_features = n_features
+    criterion="gini",  # measure quality at each split
+    max_depth=None,  # max depth of the tree
+    random_state=13,  # To obtain a deterministic behaviour during fitting, random_state has to be fixed to an integer. (?)
+)  # type:ignore
+
+# Create MY own regression-tree object:
+myf = DecisionTreeClassifier(
     splitter="best",
     max_features=None,
-    criterion="gini",
-    max_depth=None,
-    random_state=13,
+    criterion="entropy",
+    max_depth=10,
+    random_state=None,
+    min_samples_split=3,
 )  # type:ignore
+"""
+    For this dataset:
+    1. entropy seems to be doing better than gini
+    2. changing the max_depth to an int (i.e. 10) will increase the 'score on testing',
+       but also decrese the 'score on train'. (overfitting/ underfitting) (10 seems to be the magical number)
+    3. changing the min_samples split (from default 2 to 3) seems to do no a lot, but if it
+       is set to 3, it is decreasing the score.
+"""
 
 # train the tree!
 f.fit(train_X, train_y)
 
+# train my tree!
+myf.fit(train_X, train_y)
+
 # did it memorize OK?
+print("Scores on f:")
 print("Score on Training: {:.3f}".format(f.score(train_X, train_y)))
 print("Score on Testing: {:.3f}".format(f.score(test_X, test_y)))
+print("")
+print("Scores on myf:")
+print("Score on Training: {:.3f}".format(myf.score(train_X, train_y)))
+print("Score on Testing: {:.3f}".format(myf.score(test_X, test_y)))
+
 
 ## Actual 'practical' assignment.
-TODO(
-    "1. Figure out what all of the parameters I listed for the DecisionTreeClassifier do."
-)
+# TODO(
+#     "1. Figure out what all of the parameters I listed for the DecisionTreeClassifier do."
+# )
+
 # Consult the documentation: https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
-TODO("2. Pick one parameter, vary it, and find some version of the 'best' setting.")
+# TODO("2. Pick one parameter, vary it, and find some version of the 'best' setting.")
+
 # Default performance:
 # There are 2079 training examples and 693 testing examples.
 # Score on Training: 1.000
 # Score on Testing: 0.889
-TODO("3. Leave clear code for running your experiment!")
+# TODO("3. Leave clear code for running your experiment!")
