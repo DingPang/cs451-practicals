@@ -19,7 +19,7 @@ def __create_data_directory():
 
 def __download_file(url: str, path: str):
     # empty data files were mis-downloaded...
-    if os.path.getsize(path) > 0 and os.path.exists(path):
+    if os.path.exists(path) and os.path.getsize(path) > 0:
         # don't download multiple times.
         return
     # try connecting before creating output file...
@@ -45,3 +45,15 @@ def dataset_local_path(name: str) -> str:
         raise ValueError("No such dataset... {}; should you git pull?".format(name))
     assert os.path.exists(destination)
     return destination
+<<<<<<< HEAD
+=======
+
+
+def test_download():
+    import json
+
+    lpath = dataset_local_path("poetry_id.jsonl")
+    with open(lpath) as fp:
+        first = json.loads(next(fp))
+        assert first["book"] == "aceptadaoficialmente00gubirich"
+>>>>>>> 33cf4a9676e3091b1a9d444a1100571ee5d356dd
