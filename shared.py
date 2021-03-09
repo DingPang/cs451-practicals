@@ -45,8 +45,6 @@ def dataset_local_path(name: str) -> str:
         raise ValueError("No such dataset... {}; should you git pull?".format(name))
     assert os.path.exists(destination)
     return destination
-<<<<<<< HEAD
-=======
 
 
 def test_download():
@@ -56,4 +54,3 @@ def test_download():
     with open(lpath) as fp:
         first = json.loads(next(fp))
         assert first["book"] == "aceptadaoficialmente00gubirich"
->>>>>>> 33cf4a9676e3091b1a9d444a1100571ee5d356dd
