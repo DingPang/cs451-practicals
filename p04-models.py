@@ -33,7 +33,9 @@ with open(dataset_local_path("poetry_id.jsonl")) as fp:
 ## CONVERT TO MATRIX:
 
 feature_numbering = DictVectorizer(sort=True)
-X = feature_numbering.fit_transform(examples)
+
+# Ensure Feauture is within the range from 0 to 1 (very rough now)
+X = feature_numbering.fit_transform(examples) / 1000
 
 print("Features as {} matrix.".format(X.shape))
 
@@ -68,7 +70,7 @@ def consider_decision_trees():
     performances: List[ExperimentResult] = []
 
     for rnd in range(3):
-        for crit in ["entropy"]:
+        for crit in ["entropy", "gini"]:
             for d in range(1, 9):
                 params = {
                     "criterion": crit,
@@ -145,10 +147,14 @@ def consider_neural_net() -> ExperimentResult:
     performances: List[ExperimentResult] = []
     for rnd in range(3):
         params = {
-            "hidden_layer_sizes": (32,),
+            "hidden_layer_sizes": (
+                32,
+                32,
+                32,
+            ),
             "random_state": rnd,
             "solver": "lbfgs",
-            "max_iter": 500,
+            "max_iter": 10000,
             "alpha": 0.0001,
         }
         f = MLPClassifier(**params)
