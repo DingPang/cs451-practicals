@@ -15,6 +15,8 @@ from dataclasses import dataclass
 import json
 from typing import Dict, Any, List
 
+# warnings:
+import warnings
 
 #%% load up the data
 examples = []
@@ -35,6 +37,7 @@ with open(dataset_local_path("poetry_id.jsonl")) as fp:
 feature_numbering = DictVectorizer(sort=True)
 
 # Ensure Feauture is within the range from 0 to 1 (very rough now)
+# I did this so it doesn't complain...
 X = feature_numbering.fit_transform(examples) / 1000
 
 print("Features as {} matrix.".format(X.shape))
@@ -65,6 +68,7 @@ class ExperimentResult:
     model: ClassifierMixin
 
 
+# Added "gini"
 def consider_decision_trees():
     print("Consider Decision Tree.")
     performances: List[ExperimentResult] = []
@@ -85,12 +89,13 @@ def consider_decision_trees():
     return max(performances, key=lambda result: result.vali_acc)
 
 
+# Added "gini"
 def consider_random_forest():
     print("Consider Random Forest.")
     performances: List[ExperimentResult] = []
     # Random Forest
     for rnd in range(3):
-        for crit in ["entropy"]:
+        for crit in ["entropy", "gini"]:
             for d in range(4, 9):
                 params = {
                     "criterion": crit,
@@ -105,63 +110,92 @@ def consider_random_forest():
     return max(performances, key=lambda result: result.vali_acc)
 
 
+# Random state seems to like "2", so I have kept it unchanged.
+# added penalty options (like l1)
+# added max_iter options
+#   Very interesting, the max_iter seems to like 1000, although it has higher
+#   options, so this model probably converges before 1000.
 def consider_perceptron() -> ExperimentResult:
     print("Consider Perceptron.")
     performances: List[ExperimentResult] = []
     for rnd in range(3):
-        params = {
-            "random_state": rnd,
-            "penalty": None,
-            "max_iter": 1000,
-        }
-        f = Perceptron(**params)
-        f.fit(X_train, y_train)
-        vali_acc = f.score(X_vali, y_vali)
-        result = ExperimentResult(vali_acc, params, f)
-        performances.append(result)
+        for penalty in ["l2", "l1", "elasticnet"]:
+            for maxIt in range(1000, 5001, 1000):
+                params = {
+                    "random_state": rnd,
+                    "penalty": penalty,
+                    "max_iter": maxIt,
+                }
+                f = Perceptron(**params)
+                f.fit(X_train, y_train)
+                vali_acc = f.score(X_vali, y_vali)
+                # print(maxIt)
+                # print(vali_acc)
+                result = ExperimentResult(vali_acc, params, f)
+                performances.append(result)
 
     return max(performances, key=lambda result: result.vali_acc)
 
 
+# Random state seems to like "0", so I have kept it unchanged.
+# added penalty options (like l2)
+# added solver options
+#   Very interesting, when solver is newton-cg, it produces very accurate result
+# I tried adding the max-iter options, but there were too many warnings, so I
+# removed it.
+# Netwon CG as the solver produce a HUGE improvements over other method,
+# This is more significant than any other things, VERY curious to know why.
+# Added try except so it continues when solver option doenst work with penalty option
 def consider_logistic_regression() -> ExperimentResult:
     print("Consider Logistic Regression.")
     performances: List[ExperimentResult] = []
     for rnd in range(3):
-        params = {
-            "random_state": rnd,
-            "penalty": "l2",
-            "max_iter": 100,
-            "C": 1.0,
-        }
-        f = LogisticRegression(**params)
-        f.fit(X_train, y_train)
-        vali_acc = f.score(X_vali, y_vali)
-        result = ExperimentResult(vali_acc, params, f)
-        performances.append(result)
+        for penalty in ["l2", "l1", "elasticnet", "none"]:
+            for solver in ["newton-cg", "lbfgs", "liblinear", "sag", "saga"]:
+                try:
+                    params = {
+                        "random_state": rnd,
+                        "penalty": penalty,
+                        "max_iter": 1000,
+                        "C": 1.0,
+                        "solver": solver,
+                    }
+                    f = LogisticRegression(**params)
+                    f.fit(X_train, y_train)
+                    vali_acc = f.score(X_vali, y_vali)
+                    result = ExperimentResult(vali_acc, params, f)
+                    performances.append(result)
+                except:
+                    continue
 
     return max(performances, key=lambda result: result.vali_acc)
 
 
+# Random state seems to like "2", so I have kept it unchanged.
+# added solver options
+# Added layer size options, but it seems to like one single hidden layer with 32 units
 def consider_neural_net() -> ExperimentResult:
     print("Consider Multi-Layer Perceptron.")
     performances: List[ExperimentResult] = []
     for rnd in range(3):
-        params = {
-            "hidden_layer_sizes": (
-                32,
-                32,
-                32,
-            ),
-            "random_state": rnd,
-            "solver": "lbfgs",
-            "max_iter": 10000,
-            "alpha": 0.0001,
-        }
-        f = MLPClassifier(**params)
-        f.fit(X_train, y_train)
-        vali_acc = f.score(X_vali, y_vali)
-        result = ExperimentResult(vali_acc, params, f)
-        performances.append(result)
+        for solver in ["sgd", "lbfgs", "adam"]:
+            for size in range(1, 4):
+                layerlist = []
+                for s in range(0, size):
+                    layerlist.append(32)
+                print(layerlist)
+                params = {
+                    "hidden_layer_sizes": tuple(layerlist),
+                    "random_state": rnd,
+                    "solver": solver,
+                    "max_iter": 10000,
+                    "alpha": 0.0001,
+                }
+                f = MLPClassifier(**params)
+                f.fit(X_train, y_train)
+                vali_acc = f.score(X_vali, y_vali)
+                result = ExperimentResult(vali_acc, params, f)
+                performances.append(result)
 
     return max(performances, key=lambda result: result.vali_acc)
 
@@ -195,8 +229,8 @@ simple_boxplot(
     save="model-cmp.png",
 )
 
-TODO("1. Understand consider_decision_trees; I have 'tuned' it.")
-TODO("2. Find appropriate max_iter settings to stop warning messages.")
-TODO(
-    "3. Pick a model: {perceptron, logistic regression, neural_network} and optimize it!"
-)
+# TODO("1. Understand consider_decision_trees; I have 'tuned' it.")
+# TODO("2. Find appropriate max_iter settings to stop warning messages.")
+# TODO(
+#     "3. Pick a model: {perceptron, logistic regression, neural_network} and optimize it!"
+# )
