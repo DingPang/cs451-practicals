@@ -7,7 +7,13 @@ You can contribute to science or get a sense of the data here: https://label.jjf
 """
 
 import gzip, json
-from shared import dataset_local_path, TODO
+from shared import (
+    dataset_local_path,
+    TODO,
+    bootstrap_accuracy,
+    simple_boxplot,
+    bootstrap_auc,
+)
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -58,13 +64,23 @@ class JoinedWikiData:
 
 
 print(len(pages), len(labels))
-print(pages[0])
-print(labels[0])
+# print(pages[0])
+# print(labels[0])
 
 joined_data: Dict[str, JoinedWikiData] = {}
 
 labels_by_id: Dict[str, JustWikiLabel] = {}
-# for label in labels:
+for label in labels:
+    labels_by_id[label.wiki_id] = label
+for page in pages:
+    if page.wiki_id not in labels_by_id:
+        print("missing labels for page:", page.wiki_id)
+        continue
+    label_for_page = labels_by_id[page.wiki_id]
+    full_row = JoinedWikiData(
+        page.wiki_id, label_for_page.is_literary, page.title, page.body
+    )
+    joined_data[full_row.wiki_id] = full_row
 
 
 # TODO("1. create a list of JoinedWikiData from the ``pages`` and ``labels`` lists.")
@@ -123,6 +139,7 @@ X_test = word_to_column.transform(ex_test)
 print("Ready to Learn!")
 from sklearn.linear_model import LogisticRegression, SGDClassifier, Perceptron
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
 
 models = {
@@ -131,6 +148,13 @@ models = {
     "LogisticRegression": LogisticRegression(),
     "DTree": DecisionTreeClassifier(),
 }
+
+# 2A
+for d in range(1, 20):
+    models["DTree{}".format(d)] = DecisionTreeClassifier(max_depth=d)
+
+# 2B
+models["rForest"] = RandomForestClassifier()
 
 for name, m in models.items():
     m.fit(X_train, y_train)
@@ -141,6 +165,20 @@ for name, m in models.items():
     else:
         scores = m.predict_proba(X_vali)[:, 1]
     print("\tVali-AUC: {:.3}".format(roc_auc_score(y_score=scores, y_true=y_vali)))
+
+# simple_boxplot(
+#     {
+#         "Logistic Regression": bootstrap_accuracy(logit.model, X_vali, y_vali),
+#         "Perceptron": bootstrap_accuracy(perceptron.model, X_vali, y_vali),
+#         "Decision Tree": bootstrap_accuracy(dtree.model, X_vali, y_vali),
+#         "RandomForest": bootstrap_accuracy(rforest.model, X_vali, y_vali),
+#         "MLP/NN": bootstrap_accuracy(mlp.model, X_vali, y_vali),
+#     },
+#     title="Validation Accuracy",
+#     xlabel="Model",
+#     ylabel="Accuracy",
+#     save="model-cmp.png",
+# )
 
 """
 Results should be something like:
@@ -158,10 +196,17 @@ DTree:
         Vali-Acc: 0.739
         Vali-AUC: 0.71
 """
-TODO("2. Explore why DecisionTrees are not beating linear models. Answer one of:")
-TODO("2.A. Is it a bad depth?")
-TODO("2.B. Do Random Forests do better?")
-TODO(
-    "2.C. Is it randomness? Use simple_boxplot and bootstrap_auc/bootstrap_acc to see if the differences are meaningful!"
-)
-TODO("2.D. Is it randomness? Control for random_state parameters!")
+# TODO("2. Explore why DecisionTrees are not beating linear models. Answer one of:")
+# TODO("2.A. Is it a bad depth?")
+# TODO("2.B. Do Random Forests do better?")
+# TODO(
+#     "2.C. Is it randomness? Use simple_boxplot and bootstrap_auc/bootstrap_acc to see if the differences are meaningful!"
+# )
+# TODO("2.D. Is it randomness? Control for random_state parameters!")
+"""
+2.A. The depth seems to not be the problem, becauss changing the depth doesn't seem to improve the scores by a lot
+
+2.B. Randon Forest is doing better than the decision trees but it is still slightly worse than liner SGD classifer
+
+2.C.
+"""
