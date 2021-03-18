@@ -63,6 +63,9 @@ print(labels[0])
 
 joined_data: Dict[str, JoinedWikiData] = {}
 
+labels_by_id: Dict[str, JustWikiLabel] = {}
+# for label in labels:
+
 
 # TODO("1. create a list of JoinedWikiData from the ``pages`` and ``labels`` lists.")
 # This challenge has some very short solutions, so it's more conceptual. If you're stuck after ~10-20 minutes of thinking, ask!
