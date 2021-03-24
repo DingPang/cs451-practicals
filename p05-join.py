@@ -166,20 +166,6 @@ for name, m in models.items():
         scores = m.predict_proba(X_vali)[:, 1]
     print("\tVali-AUC: {:.3}".format(roc_auc_score(y_score=scores, y_true=y_vali)))
 
-# simple_boxplot(
-#     {
-#         "Logistic Regression": bootstrap_accuracy(logit.model, X_vali, y_vali),
-#         "Perceptron": bootstrap_accuracy(perceptron.model, X_vali, y_vali),
-#         "Decision Tree": bootstrap_accuracy(dtree.model, X_vali, y_vali),
-#         "RandomForest": bootstrap_accuracy(rforest.model, X_vali, y_vali),
-#         "MLP/NN": bootstrap_accuracy(mlp.model, X_vali, y_vali),
-#     },
-#     title="Validation Accuracy",
-#     xlabel="Model",
-#     ylabel="Accuracy",
-#     save="model-cmp.png",
-# )
-
 """
 Results should be something like:
 
@@ -206,7 +192,7 @@ DTree:
 """
 2.A. The depth seems to not be the problem, becauss changing the depth doesn't seem to improve the scores by a lot
 
-2.B. Randon Forest is doing better than the decision trees but it is still slightly worse than liner SGD classifer
-
-2.C.
+2.B. Randon Forest is doing better than the decision trees but it is still slightly worse than liner SGD classifer,
+    I think linear model is doing better because the datasets may just work better with one line as the "classification" on
+    is_literary.
 """
