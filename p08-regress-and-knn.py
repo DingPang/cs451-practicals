@@ -81,17 +81,35 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import SGDRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.linear_model import LinearRegression
 
-m = KNeighborsRegressor(n_neighbors=5, weights="distance")
+m = KNeighborsRegressor(n_neighbors=5, weights="distance") # K=5 does produce the best answer
 m.fit(X_train, y_train)
 
-print(m.score(X_vali, y_vali))
+print("KNN: " + str(m.score(X_vali, y_vali)))
+
+m1 = DecisionTreeRegressor()
+m1.fit(X_train, y_train)
+print("DTree: " + str(m1.score(X_vali, y_vali)))
+
+m2 = SGDRegressor()
+m2.fit(X_train, y_train)
+print("SGD: " + str(m2.score(X_vali, y_vali)))
+
+m3 = MLPRegressor(max_iter=1000)
+m3.fit(X_train, y_train)
+print("MLP: " + str(m3.score(X_vali, y_vali)))
+
+m4 = LinearRegression()
+m4.fit(X_train, y_train)
+print("LR: " + str(m4.score(X_vali, y_vali)))
 
 ## Lab TODO:
 # Mandatory:
 # - Try some other regression models.
 # Options:
 #    - Try all the other regression models.
+#       Done
 #    - Research the AirQualityUCI dataset to see what the best approaches are!
 #    - Try at least one, plot a (y_pred, y_actual) scatter plot (e.g., visualize correlation / R**2)
 #    - [Difficult] see the brute-force kNN below, try to refactor the loops out of python.
@@ -137,7 +155,7 @@ if do_slow:
     print("Manual KNN:", r2_score(y_vali, y_vali_pred))
 
     ## TODO (optional, Challenging!) (efficiency / matrix ops)
-    #
+    # This is so Annoying... Not gonna do it:(
     # Converting our Manual KNN to use scipy.spatial.distance.cdist
     # *should* allow it to compute a matrix of distances between
     # X_train and X_vali as 1 call to the scipy C/Fortran library.
