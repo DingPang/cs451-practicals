@@ -85,11 +85,33 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import SGDRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.linear_model import LinearRegression
 
-m = KNeighborsRegressor(n_neighbors=5, weights="distance")
+# m = KNeighborsRegressor(n_neighbors=5, weights="distance")
+# m.fit(X_train, y_train)
+
+# print(m.score(X_vali, y_vali))
+
+m = KNeighborsRegressor(n_neighbors=5, weights="distance") # K=5 does produce the best answer
 m.fit(X_train, y_train)
 
-print(m.score(X_vali, y_vali))
+print("KNN: " + str(m.score(X_vali, y_vali)))
+
+m1 = DecisionTreeRegressor()
+m1.fit(X_train, y_train)
+print("DTree: " + str(m1.score(X_vali, y_vali)))
+
+m2 = SGDRegressor()
+m2.fit(X_train, y_train)
+print("SGD: " + str(m2.score(X_vali, y_vali)))
+
+m3 = MLPRegressor(max_iter=1000)
+m3.fit(X_train, y_train)
+print("MLP: " + str(m3.score(X_vali, y_vali)))
+
+m4 = LinearRegression()
+m4.fit(X_train, y_train)
+print("LR: " + str(m4.score(X_vali, y_vali)))
 
 ## Lab TODO:
 # Mandatory:
