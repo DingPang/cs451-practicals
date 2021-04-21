@@ -140,7 +140,7 @@ for i in range(1000):
 
 print(["{:1.3f}".format(x[0]) for x in best_model.weights.tolist()])
 
-graphs["Best-of-Random"] = bootstrap_r2(best_model, X_vali, y_vali)
+# graphs["Best-of-Random"] = bootstrap_r2(best_model, X_vali, y_vali)
 
 # SGD uses derivatives to 'aim' it's search... faster than CA which explores every direction!
 for i in range(20):
@@ -213,4 +213,9 @@ simple_boxplot(graphs, "{} R**2".format(PREDICT_COL), save="graphs/p11-r2-score.
 ##
 # TODO:
 # 1. remove the 'best-of-random' graph, so you can see the other ones!
+#   Done, see line 143
 # 2. See if there's anything here that might help your project.
+#   For the CS451 Project, I may try some of the above linera models, but the first thing like you suggested
+#   in comments should be storing features in a file rather than reading them for every runs.
+#   For the CS701 Project, we have used gradient descent a lot for NST, which is in next particle,
+#   and that will certainly help my understandings.
