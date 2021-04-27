@@ -124,13 +124,13 @@ print("LR-GD AUC: {:.3}".format(np.mean(bootstrap_auc(m, X_vali, y_vali))))
 print("LR-GD Acc: {:.3}".format(m.score(X_vali, y_vali)))
 
 
-def train_logistic_regression_sgd_opt(name: str, num_iter=100, minibatch_size=512):
+def train_logistic_regression_sgd_opt(name: str, alpha, num_iter=100, minibatch_size=512):
     """ This is bootstrap-sampling minibatch SGD """
     plot = ModelTrainingCurve()
     learning_curves[name] = plot
 
     m = LogisticRegressionModel.random(D)
-    alpha = 0.1
+    # alpha = 0.1
     n_samples = max(1, N // minibatch_size)
 
     for _ in tqdm(range(num_iter), total=num_iter, desc=name):
@@ -141,10 +141,12 @@ def train_logistic_regression_sgd_opt(name: str, num_iter=100, minibatch_size=51
         plot.add_sample(m, X_train, y_train, X_vali, y_vali)
     return m
 
-
-m = train_logistic_regression_sgd_opt("LR-SGD", num_iter=2000)
-print("LR-SGD AUC: {:.3}".format(np.mean(bootstrap_auc(m, X_vali, y_vali))))
-print("LR-SGD Acc: {:.3}".format(m.score(X_vali, y_vali)))
+for alpha in [0.05, 0.1, 0.5, 1.0, 7.0]:
+    # for max_iter in [100, 500, 1000, 2000]:
+    for max_iter in [800]: # 800 is maybe enough?
+        m = train_logistic_regression_sgd_opt("LR-SGD with alpha = {} num_iter = {}".format(alpha, max_iter), alpha, num_iter=max_iter)
+        print("LR-SGD AUC: {:.3}".format(np.mean(bootstrap_auc(m, X_vali, y_vali))))
+        print("LR-SGD Acc: {:.3}".format(m.score(X_vali, y_vali)))
 
 
 ## Create training curve plots:
@@ -177,9 +179,12 @@ plt.show()
 # TODO:
 #
 # 1. pick SGD or GD (I recommend SGD)
+#   Picked SGD
 # 2. pick a smaller max_iter that gets good performance.
+#   tried a few differnt things at the beginning, eventually felt like 800 iters are probably good enough
 
 # Do either A or B:
+#   Did A!
 
 # (A) Explore Learning Rates:
 #
@@ -188,8 +193,11 @@ plt.show()
 # .... alpha = [0.05, 0.1, 0.5, 1.0]
 # .... what do you notice?
 
-# (B) Explore 'Automatic/Early Stopping'
-#
-# 3. split the 'training' data into **another** validation set.
-# 4. modify the SGD/GD loop to keep track of loss/accuarcy on this mini validation set at each iteration.
-# 5. add a tolerance parameter, and stop looping when the loss/accuracy on the mini validation set stops going down.
+# As we can see in both trainning and validating graph: Higher learning rate means that we are taking
+# Bigger step towards our goal but each of those steps may not be in the optimal direction, so we get
+# this up and down fluctuation when our alpha is higher (especially alpha =7.0). When the learning rate
+# is low, that means we are taking smaller step, so each gradient update has smaller effects, we are
+# less likely to have high fluctuation, but the speed of reaching good results is also lower.
+
+# So, finding the optimal learning rate is extremely important for models in this file and many other
+# models. I feel like a number between 1.0 and 0.5 are well suited for our sgd.
