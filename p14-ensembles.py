@@ -1,4 +1,5 @@
 import random
+import math
 import numpy as np
 from dataclasses import dataclass, field
 from sklearn.base import ClassifierMixin
@@ -55,10 +56,16 @@ class WeightedEnsemble(ClassifierMixin):
 
 
 #%%
+params = {
+    "criterion": "gini",
+    "splitter": "best",
+    "max_depth": 5,
+}
 
 tree_num = []
 tree_vali = []
 forest_vali = []
+name = "-1"
 
 forest = WeightedEnsemble()
 (N, D) = X_train.shape
@@ -67,15 +74,38 @@ for i in range(100):
     X_sample, y_sample = resample(X_train, y_train)  # type:ignore
 
     # TODO create a tree model.
-    tree = TODO("train and fit a model to the sampled data")
+    tree = DecisionTreeClassifier(**params)
+    tree.fit(X_sample, y_sample)
 
     # TODO Experiment:
     # What if instead of every tree having the same 1.0 weight, we considered some alternatives?
+    # weight = 1.0
+
     #  - weight = the accuracy of that tree on the whole training set.
+    weight = tree.score(X_sample, y_sample)
+    name = "-accuracy-on-trainning"
+
     #  - weight = the accuracy of that tree on the validation set.
+    # weight = tree.score(X_vali, y_vali)
+    # name = "-accuracy-on-vali"
+
     #  - weight = random.random()
-    #  - weight = 0.1
-    weight = 1.0
+    # random.seed(12345)
+    # weight = random.random()
+    # name = "-random"
+
+    #  - weight = 0.1 This is bad
+    # weight = 0.1
+    # name = "-1e-1"
+
+    #  - weight = crazy
+    # weight = -1e6*math.log(tree.score(X_sample, y_sample))
+    # name = "-crazy"
+
+    # I feel like using the accuracy on trainning or accuracy on vali both work, and
+    # they produce very slighlty better result than just 1...
+    # However others are not bad...
+    # Tried something crazy, felt like that random forest can be quite robust to weights
 
     # hold onto it for voting
     forest.insert(weight, tree)
@@ -91,5 +121,7 @@ import matplotlib.pyplot as plt
 
 plt.plot(tree_num, tree_vali, label="Individual Trees", alpha=0.5)
 plt.plot(tree_num, forest_vali, label="Random Forest")
+plt.title("p14-weight{}".format(name))
 plt.legend()
-plt.show()
+# plt.show()
+plt.savefig("./graphs/p14-weight{}".format(name))
