@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 import typing as T
 from dataclasses import dataclass
+import random
 
 #%%
 
@@ -44,7 +45,6 @@ configs = []
 configs.append({"kernel": "linear"})
 configs.append({"kernel": "poly", "degree": 2})
 configs.append({"kernel": "poly", "degree": 3})
-configs.append({"kernel": "rbf"})
 # configs.append({"kernel": "sigmoid"}) # just awful.
 
 
@@ -58,16 +58,26 @@ class ModelInfo:
 
 # TODO: C is the most important value for a SVM.
 #       1/C is how important the model stays small.
+# As we know the strength of the regularization is proportional to 1/C, but reading off from the logs
+# I don't think it has a huge effect on regularization
 # TODO: RBF Kernel is the best; explore it's 'gamma' parameter.
+configs.append({"kernel": "rbf", "gamma":'scale'})
+configs.append({"kernel": "rbf", "gamma":'auto'})
+configs.append({"kernel": "rbf", "gamma": 0.1})
+# temp = random.uniform(0.1, 1.1)
+# configs.append({"kernel": "rbf", "gamma": temp}) #This is just bad
+# Since the gamma is the kernal coefficient, and it is very reasonable to connect it to
+# number of features. I have tried putting a random number there, but the effect is bad.
+# Also, 0.1 seems to be okay, but nowhere compare to the two default values.
 
 for cfg in configs:
     variants: T.List[ModelInfo] = []
     for class_weights in [None, "balanced"]:
-        for c_val in [1.0]:
+        for c_val in range(1, 100, 10):
             svm = SVMClassifier(C=c_val, class_weight=class_weights, **cfg)
             svm.fit(X_train, y_train)
-            name = "k={}{} C={} {}".format(
-                cfg["kernel"], cfg.get("degree", ""), c_val, class_weights or ""
+            name = "k={}{} C={} gamma={} {}".format(
+                cfg["kernel"], cfg.get("degree", ""), c_val, cfg.get("gamma", "None"), class_weights or ""
             )
             accuracy = svm.score(X_vali, y_vali)
             print("{}. score= {:.3}".format(name, accuracy))
